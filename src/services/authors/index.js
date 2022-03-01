@@ -33,7 +33,6 @@ authorsArray.push(newUser)
 fs.writeFileSync(authorsJSONPath, JSON.stringify(authorsArray)) // before we pass it we need to turn it back to json
 // Then send the response back // 201 means Created
 response.status(201).send(newUser) // this is what we send back to user in the response. Could also be just id {_id: newUser.id }
-
 }
 })
 

@@ -15,19 +15,26 @@ const authorsJSONPath = join(dirname(fileURLToPath(import.meta.url)), "authors.j
 const authorsRouter = express.Router() // all the enpoints attached to this router will have http://localhost:3001/authors as PREFIX
 
 authorsRouter.post("/", (request, response) => { // this is used for posting a new author object to the array of authors
+//Here I get the current array from JSON file and change it into the regular array so I can add new object there
+const authorsArray = JSON.parse(fs.readFileSync(authorsJSONPath)) //
 // In this CRUD method I will receive a body as a part of the request
 // To get it I need to write request.body
-// If the request.body is empty then it means I did not add server.use(express.json()) in server.js file!!!
+// If the request.body is getting to me as undefined then it means I did not add server.use(express.json()) in server.js file!!!
+// Let's check if the email in the request in unique
+const emailRepeated = authorsArray.find(author => author.email === request.body.email)
+if (emailRepeated) {
+    response.status(400).send("This email already in use. Choose another one")
+} else{
 // With the request.body I create a new user, adding some server info with spread operator
 // I use uniqid, a 3rd party module to generate unique ids
 const newUser = {...request.body, createdAt: new Date(), _id: uniqid(), avatar: `https://ui-avatars.com/api/?name=${request.body.name}+${request.body.surname}`}
-//Then I get the current array from JSON file and change it into the regular array so I can add new object there
-const authorsArray = JSON.parse(fs.readFileSync(authorsJSONPath)) //
 authorsArray.push(newUser)
 // Then I write update the JSON file to reflect the change 
 fs.writeFileSync(authorsJSONPath, JSON.stringify(authorsArray)) // before we pass it we need to turn it back to json
 // Then send the response back // 201 means Created
 response.status(201).send(newUser) // this is what we send back to user in the response. Could also be just id {_id: newUser.id }
+
+}
 })
 
 authorsRouter.get("/", (request, response) => {

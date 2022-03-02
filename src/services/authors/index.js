@@ -20,7 +20,7 @@ try {
     if (errorsList.isEmpty()) {
         const emailRepeated = authorsArray.find(author => author.email === request.body.email)
         if (emailRepeated) {
-            response.status(400).send("This email already in use. Choose another one")
+            next(createHttpError(400, "This email already in use. Choose another one"))
         } else{
         const newUser = {...request.body, createdAt: new Date(), _id: uniqid(), avatar: `https://ui-avatars.com/api/?name=${request.body.name}+${request.body.surname}`}
         authorsArray.push(newUser)
@@ -80,10 +80,14 @@ authorsRouter.put("/:authorId", (request, response, next) => {
     }
 }) 
 
-authorsRouter.delete("/:authorId", (request, response) => {
-const remainingAuthors = authorsArray.filter(author => author._id !== request.params.authorId)
-updateArray(remainingAuthors)
-response.status(200).send("Author deleted")
+authorsRouter.delete("/:authorId", (request, response, next) => {
+    try {
+        const remainingAuthors = authorsArray.filter(author => author._id !== request.params.authorId)
+        updateArray(remainingAuthors)
+        response.status(200).send({message: "Author deleted"})
+    } catch (error) {
+        next(error)
+    }
 })
 
 export default authorsRouter

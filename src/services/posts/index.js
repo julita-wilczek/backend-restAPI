@@ -6,7 +6,6 @@ import uniqid from "uniqid"
 import createHttpError from "http-errors"
 import { validationResult } from "express-validator"
 import { newPostValidation } from "./validation.js"
-import req from "express/lib/request"
 
 const postsJSONPath = join(dirname(fileURLToPath(import.meta.url)), "posts.json")
 const postsArray = JSON.parse(fs.readFileSync(postsJSONPath)) 
@@ -81,52 +80,16 @@ postsRouter.put("/:postId", (request, response, next) => {
 
 
 }) 
-postsRouter.delete("/:postId", (request, response) => {
-const remainingPosts = postsArray.filter(post => post._id !== request.params.postId)
-updateArray(remainingPosts)
-response.status(200).send({message: "Post deleted"})
+postsRouter.delete("/:postId", (request, response, next) => {
+    try {
+        const remainingPosts = postsArray.filter(post => post._id !== request.params.postId)
+        updateArray(remainingPosts)
+        response.status(200).send({message: "Post deleted"})
+    } catch(error) {
+        next(error)
+    }
+
 })
 
 export default postsRouter
 
-/*
-  try {
-    const index = books.findIndex(book => book.id === bookId)
-
-    if (index !== -1) {
-      const oldBook = books[index]
-
-      const updatedBook = { ...oldBook, ...req.body, updatedAt: new Date() }
-
-      books[index] = updatedBook
-
-      writeBooks(books)
-
-      res.send(updatedBook)
-    } else {
-      next(createHttpError(404, `Book with id ${bookId} not found!`))
-    }
-  } catch (error) {
-    next(error)
-  }
-})
-
-booksRouter.delete("/:bookId", (req, res, next) => {
-  try {
-    const bookId = req.params.bookId
-
-    const books = getBooks()
-
-    const remainingBooks = books.filter(book => book.id !== bookId)
-
-    writeBooks(remainingBooks)
-
-    res.status(204).send()
-  } catch (error) {
-    next(error)
-  }
-})
-
-export default booksRouter
-
-*/

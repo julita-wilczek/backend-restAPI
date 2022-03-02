@@ -1,5 +1,5 @@
 import express from "express"
-import listEndpoints from "express-list-endpoints"
+// import listEndpoints from "express-list-endpoints" --> use with console.table to check the endpoints
 import authorsRouter from "./services/authors/index.js"
 import postsRouter from "./services/posts/index.js"
 import cors from "cors"

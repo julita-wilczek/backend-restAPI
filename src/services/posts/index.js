@@ -47,12 +47,12 @@ postsRouter.get("/", (request, response, next) => {
 postsRouter.get("/:postId", (request, response, next) => { 
     try {
         const requestedPost = postsArray.find(post => post._id === request.params.postId)
-        if (requesteBook) {
+        if (requestedPost) {
             response.send(requestedPost)
         } else {
-            next(createHttpError(404, "This is not the post you're looking for."))
+            next(createHttpError(404, "This is not the post you're looking for.",))
         }
-    } catch (error) {
+    } catch(error) {
         next(error)
     }
 
@@ -82,9 +82,14 @@ postsRouter.put("/:postId", (request, response, next) => {
 }) 
 postsRouter.delete("/:postId", (request, response, next) => {
     try {
+        const requestedPost = postsArray.find(post => post._id === request.params.postId)
+        if (requestedPost) {
         const remainingPosts = postsArray.filter(post => post._id !== request.params.postId)
         updateArray(remainingPosts)
         response.status(200).send({message: "Post deleted"})
+    } else {
+        next(createHttpError(404, "This post doesn't exist"))
+    }
     } catch(error) {
         next(error)
     }

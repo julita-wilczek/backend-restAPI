@@ -1,6 +1,6 @@
 export const badRequestHandler = (error, request, response, next) => {
     if (error.status === 400) {
-        response.status(400).send({message: error.message, errorList: error.errorsLists})
+        response.status(400).send({message: error.message, errorList: error.errorsList.array()})
     } else {
         next(error)
     }
@@ -25,5 +25,6 @@ export const notFoundHandler = (error, request, response, next) => {
 
 // This is for all other errors
 export const genericErrorHandler = (error, request, response, next) => {
+  console.log(error)
   response.status(500).send({ message: "Server Error. It's not you, it's me!" })
 }

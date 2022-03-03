@@ -8,12 +8,18 @@ import filesRouter from "./services/files/index.js"
 
 
 const server = express()
-
 const port = 3001
+const publicFolderPath = join(process.cwd(), "./public")
+
+// ****************** MIDDLEWARES *****************
+
+server.use(express.static(publicFolderPath))
 server.use(cors()) // needed to connect to frontend, will be discussed in detail on Monday
 server.use(express.json ()) // we add this in lines before endpoint are added so the server will not return undefined.
 
+
 // ***************** ENDPOINTS *****************
+
 server.use("/authors", authorsRouter)
 server.use("/blogPosts", postsRouter)
 server.use("/files", filesRouter)

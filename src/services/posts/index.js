@@ -6,7 +6,7 @@ import { newPostValidation } from "./validation.js"
 import { getPosts, updatePosts } from "../../library/fs-tools.js"
 import { saveCovers } from "../../library/fs-tools.js"
 import multer from "multer"
-
+import {extname} from "path"
 
 const postsRouter = express.Router()
 
@@ -15,7 +15,7 @@ postsRouter.post("/", newPostValidation, async (request, response, next) => {
         const errorsList = validationResult(request)
         const posts = await getPosts()
         if (errorsList.isEmpty()) {
-            const newPost = {...request.body, createdAt: new Date(), _id: uniqid()}
+            const newPost = {...request.body, comments: [], createdAt: new Date(), _id: uniqid()}
             posts.push(newPost)
             await updatePosts(posts)
             response.status(201).send(newPost)
@@ -109,11 +109,12 @@ postsRouter.post("/:postId/uploadCover", multer().single("cover"), async (req, r
     try {
     const postId = req.params.postId
     const posts = await getPosts()
+    const extension = extname(req.file.originalname)
     const index = posts.findIndex(post => post._id === postId)
     if (index !== -1) {
-        await saveCovers(`${postId}.jpg`, req.file.buffer)
+        await saveCovers(`${postId}${extension}`, req.file.buffer)
         const oldPost = posts[index]
-        const updatedPost = {...oldPost, cover: `http://localhost:3001/img/posts/${postId}.jpg`, updatedAt: new Date()}
+        const updatedPost = {...oldPost, cover: `http://localhost:3001/img/posts/${postId}${extension}`, updatedAt: new Date()}
         posts[index] = updatedPost
         await updatePosts(posts)
         res.send({message: "Cover uploaded"})
@@ -125,10 +126,28 @@ postsRouter.post("/:postId/uploadCover", multer().single("cover"), async (req, r
     }
 })
 
+postsRouter.post("/:postId/comments", async (req, res, next) => {
+    try{
+    const posts = await getPosts()
+    const postId = req.params.postId
+    const requestedPost = posts.find(post => post._id === postId) 
+    if (requestedPost) {
+    const newComment = {...req.body, createdAt: new Date(), _id: uniqid()}
+    requestedPost.comments.push(newComment)
+    updatePosts(posts)
+    res.send(requestedPost.comments)
+    } else {
+        next(createHttpError(404, "No post with this ID found. Could not add comments"))
+    }
+    } catch(error){
+       next(error) 
+    }
+})
+
 export default postsRouter
 
 /*
-POST /blogPosts/:id/uploadCover, uploads a picture (save as idOfTheBlogPost.jpg in the public/img/blogPosts folder)
- for the blog post specified by the id. Store the newly created URL into the corresponding post in blogPosts.json
+GET /blogPosts/:id/comments, get all the comments for a specific post
+POST /blogPosts/:id/comments, add a new comment to the specific post
 
 */

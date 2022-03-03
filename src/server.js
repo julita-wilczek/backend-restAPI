@@ -13,7 +13,7 @@ const publicFolderPath = join(process.cwd(), "./public")
 
 // ****************** MIDDLEWARES *****************
 
-server.use(express.static(publicFolderPath))
+server.use(express.static(publicFolderPath))// your-app.com/img/authors/xas.. server.use("/files", express.static(publicFolderPath)) you can add that and the name
 server.use(cors()) // needed to connect to frontend, will be discussed in detail on Monday
 server.use(express.json ()) // we add this in lines before endpoint are added so the server will not return undefined.
 

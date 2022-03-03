@@ -137,7 +137,7 @@ postsRouter.post("/:postId/comments", newCommentValidation, async (req, res, nex
     const newComment = {...req.body, createdAt: new Date(), _id: uniqid()}
     requestedPost.comments.push(newComment)
     await updatePosts(posts)
-    res.send(requestedPost.comments)
+    res.status(201).send(requestedPost.comments)
     } else {
         next(createHttpError(404, "No post with this ID found. Could not add comments"))
     }} else {
@@ -148,7 +148,19 @@ postsRouter.post("/:postId/comments", newCommentValidation, async (req, res, nex
 })
 
 postsRouter.get("/:postId/comments", async (req, res, next) => {
-
+ try {
+    const posts = await getPosts()
+    const postId = req.params.postId
+    const requestedPost = posts.find(post => post._id === postId)
+    if (requestedPost) {
+        res.send(requestedPost.comments)
+    } else {
+        next(createHttpError(404, "No post with this ID Found. Could not get the comments"))
+    }
+    
+ } catch(error){
+     next(error)
+ }
 })
 
 export default postsRouter

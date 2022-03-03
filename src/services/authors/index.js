@@ -4,6 +4,8 @@ import { validationResult } from "express-validator"
 import { newAuthorValidation } from "./validation.js"
 import createHttpError from "http-errors"
 import { getAuthors, updateAuthors } from "../../library/fs-tools.js"
+import { saveAvatars } from "../../library/fs-tools.js"
+import multer from "multer"
 
 const authorsRouter = express.Router() 
 
@@ -88,9 +90,24 @@ authorsRouter.delete("/:authorId", async (request, response, next) => {
     }
 })
 
-// authorsRouter.patch("/:userId/avatar", multer().single("avatar"), (req,res) => {
-//   // 1. save file in public folder
-//   // 2. update specified user's record in db by adding a filed called avatar: "url"
-// })
+authorsRouter.post("/:authorId/uploadAvatar", multer().single("avatar"), async (req, res, next) => {
+    try {
+    const authorId = req.params.authorId
+    const authors = await getAuthors()
+    const index = authors.findIndex(author => author._id === authorId)
+    if (index !== -1) {
+        await saveAvatars(`${authorId}.jpg`, req.file.buffer)
+        const oldAuthor = authors[index]
+        const updatedAuthor = {...oldAuthor, avatar: `http://localhost:3001/img/authors/${authorId}.jpg`, updatedAt: new Date()}
+        authors[index] = updatedAuthor
+        await updateAuthors(authors)
+        res.send({message: "Avatar uploaded"})
+    } else {
+        next(createHttpError(404, "This is not the author you're looking for."))
+    }
+    } catch(error) {
+        next(error)
+    }
+})
 
 export default authorsRouter

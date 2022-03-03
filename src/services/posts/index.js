@@ -4,6 +4,9 @@ import createHttpError from "http-errors"
 import { validationResult } from "express-validator"
 import { newPostValidation } from "./validation.js"
 import { getPosts, updatePosts } from "../../library/fs-tools.js"
+import { saveCovers } from "../../library/fs-tools.js"
+import multer from "multer"
+
 
 const postsRouter = express.Router()
 
@@ -102,5 +105,30 @@ postsRouter.delete("/:postId", async (request, response, next) => {
 
 })
 
+postsRouter.post("/:postId/uploadCover", multer().single("cover"), async (req, res, next) => {
+    try {
+    const postId = req.params.postId
+    const posts = await getPosts()
+    const index = posts.findIndex(post => post._id === postId)
+    if (index !== -1) {
+        await saveCovers(`${postId}.jpg`, req.file.buffer)
+        const oldPost = posts[index]
+        const updatedPost = {...oldPost, cover: `http://localhost:3001/img/posts/${postId}.jpg`, updatedAt: new Date()}
+        posts[index] = updatedPost
+        await updatePosts(posts)
+        res.send({message: "Cover uploaded"})
+    } else {
+        next(createHttpError(404, "This is not the author you're looking for."))
+    }
+    } catch(error) {
+        next(error)
+    }
+})
+
 export default postsRouter
 
+/*
+POST /blogPosts/:id/uploadCover, uploads a picture (save as idOfTheBlogPost.jpg in the public/img/blogPosts folder)
+ for the blog post specified by the id. Store the newly created URL into the corresponding post in blogPosts.json
+
+*/

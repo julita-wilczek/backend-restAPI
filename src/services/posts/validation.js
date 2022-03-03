@@ -6,3 +6,8 @@ export const newPostValidation = [
     body("content").exists().withMessage("You need to have some content")
 
 ]
+
+export const newCommentValidation = [
+    body("name").exists().withMessage("You need to tell us your name"),
+    body("text").exists().withMessage("You need to add some comment")
+]

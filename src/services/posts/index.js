@@ -2,7 +2,7 @@ import express, { response } from "express"
 import uniqid from "uniqid"
 import createHttpError from "http-errors"
 import { validationResult } from "express-validator"
-import { newPostValidation } from "./validation.js"
+import { newPostValidation, newCommentValidation } from "./validation.js"
 import { getPosts, updatePosts } from "../../library/fs-tools.js"
 import { saveCovers } from "../../library/fs-tools.js"
 import multer from "multer"
@@ -126,28 +126,33 @@ postsRouter.post("/:postId/uploadCover", multer().single("cover"), async (req, r
     }
 })
 
-postsRouter.post("/:postId/comments", async (req, res, next) => {
+postsRouter.post("/:postId/comments", newCommentValidation, async (req, res, next) => {
     try{
+    const errorsList = validationResult(req)
     const posts = await getPosts()
+    if (errorsList.isEmpty()) {
     const postId = req.params.postId
     const requestedPost = posts.find(post => post._id === postId) 
     if (requestedPost) {
     const newComment = {...req.body, createdAt: new Date(), _id: uniqid()}
     requestedPost.comments.push(newComment)
-    updatePosts(posts)
+    await updatePosts(posts)
     res.send(requestedPost.comments)
     } else {
         next(createHttpError(404, "No post with this ID found. Could not add comments"))
-    }
-    } catch(error){
+    }} else {
+        next(createHttpError(400, "Big mistake. Big. Huge", {errorsList}))
+    }} catch(error){
        next(error) 
     }
+})
+
+postsRouter.get("/:postId/comments", async (req, res, next) => {
+
 })
 
 export default postsRouter
 
 /*
 GET /blogPosts/:id/comments, get all the comments for a specific post
-POST /blogPosts/:id/comments, add a new comment to the specific post
-
 */

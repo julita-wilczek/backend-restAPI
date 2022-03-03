@@ -5,7 +5,7 @@ import postsRouter from "./services/posts/index.js"
 import cors from "cors"
 import { badRequestHandler, genericErrorHandler, notFoundHandler, unauthorizedHandler } from "./ErrorHandlers.js"
 import filesRouter from "./services/files/index.js"
-
+import {join} from "path"
 
 const server = express()
 const port = 3001

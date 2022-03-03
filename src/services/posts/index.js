@@ -1,25 +1,20 @@
 import express, { response } from "express" 
-import { fileURLToPath } from "url" 
-import { dirname, join } from "path" 
-import fs from "fs"
 import uniqid from "uniqid"
 import createHttpError from "http-errors"
 import { validationResult } from "express-validator"
 import { newPostValidation } from "./validation.js"
-
-const postsJSONPath = join(dirname(fileURLToPath(import.meta.url)), "posts.json")
-const postsArray = JSON.parse(fs.readFileSync(postsJSONPath)) 
-const updateArray = (array) => fs.writeFileSync(postsJSONPath, JSON.stringify(array)) 
+import { getPosts, updatePosts } from "../../library/fs-tools.js"
 
 const postsRouter = express.Router()
 
 postsRouter.post("/", newPostValidation, (request, response, next) => { 
     try { 
         const errorsList = validationResult(request)
+        const posts = getPosts()
         if (errorsList.isEmpty()) {
             const newPost = {...request.body, createdAt: new Date(), _id: uniqid()}
-            postsArray.push(newPost)
-            updateArray(postsArray)
+            posts.push(newPost)
+            updatePosts(posts)
             response.status(201).send(newPost)
         } else {
             next(createHttpError(400, "Big mistake. Big. HUGE!", {errorsList}))
@@ -33,16 +28,17 @@ postsRouter.post("/", newPostValidation, (request, response, next) => {
 
 postsRouter.get("/", (request, response, next) => {
     try {
+        const posts = getPosts()
         if (request.query && request.query.category){
-            const filteredByCategory = postsArray.filter(post => post.category === request.query.category)
+            const filteredByCategory = posts.filter(post => post.category === request.query.category)
             response.send(filteredByCategory)
             // next(createHttpError(404, "No such category"))
         } else if (request.query && request.query.title) {
-            const filteredByTitle = postsArray.filter(post => post.title.toLowerCase().includes(request.query.title.toLowerCase()))
+            const filteredByTitle = posts.filter(post => post.title.toLowerCase().includes(request.query.title.toLowerCase()))
             response.send(filteredByTitle)
             // next(createHttpError(404, "No such title"))
         } else {
-            response.send(postsArray)
+            response.send(posts)
         }
         
     } catch(error) {
@@ -53,7 +49,8 @@ postsRouter.get("/", (request, response, next) => {
 
 postsRouter.get("/:postId", (request, response, next) => { 
     try {
-        const requestedPost = postsArray.find(post => post._id === request.params.postId)
+        const posts = getPosts()
+        const requestedPost = posts.find(post => post._id === request.params.postId)
         if (requestedPost) {
             response.send(requestedPost)
         } else {
@@ -69,12 +66,13 @@ postsRouter.get("/:postId", (request, response, next) => {
 postsRouter.put("/:postId", (request, response, next) => { 
 
     try {
-    const index = postsArray.findIndex(post => post._id === request.params.postId)
+    const posts = getPosts()
+    const index = posts.findIndex(post => post._id === request.params.postId)
     if (index !== -1) {
-        const oldPost = postsArray[index]
+        const oldPost = posts[index]
         const updatedPost = {...oldPost, ...request.body, updatedAt: new Date()}
-        postsArray[index] = updatedPost
-        updateArray(postsArray)
+        posts[index] = updatedPost
+        updatePosts(posts)
         response.send(updatedPost)
     } else {
         next(createHttpError(404, "This is not the post you're looking for."))
@@ -89,10 +87,11 @@ postsRouter.put("/:postId", (request, response, next) => {
 }) 
 postsRouter.delete("/:postId", (request, response, next) => {
     try {
-        const requestedPost = postsArray.find(post => post._id === request.params.postId)
+        const posts = getPosts()
+        const requestedPost = posts.find(post => post._id === request.params.postId)
         if (requestedPost) {
-        const remainingPosts = postsArray.filter(post => post._id !== request.params.postId)
-        updateArray(remainingPosts)
+        const remainingPosts = posts.filter(post => post._id !== request.params.postId)
+        updatePosts(remainingPosts)
         response.status(200).send({message: "Post deleted"})
     } else {
         next(createHttpError(404, "This post doesn't exist"))

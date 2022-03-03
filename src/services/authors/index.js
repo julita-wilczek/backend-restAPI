@@ -1,30 +1,24 @@
 import express, { response } from "express" 
-import { fileURLToPath } from "url" 
-import { dirname, join } from "path" 
-import fs from "fs"
 import uniqid from "uniqid" 
-import { nextTick } from "process"
 import { validationResult } from "express-validator"
 import { newAuthorValidation } from "./validation.js"
 import createHttpError from "http-errors"
-
-const authorsJSONPath = join(dirname(fileURLToPath(import.meta.url)), "authors.json")
-const authorsArray = JSON.parse(fs.readFileSync(authorsJSONPath))
-const updateArray = array => fr.writeFileSync(authorsJSONPath, JSON.stringify(array))
+import { getAuthors, updateAuthors } from "../../library/fs-tools.js"
 
 const authorsRouter = express.Router() 
 
 authorsRouter.post("/", newAuthorValidation, (request, response, next) => { 
 try {
     const errorsList = validationResult(request)
+    const authors = getAuthors()
     if (errorsList.isEmpty()) {
-        const emailRepeated = authorsArray.find(author => author.email === request.body.email)
+        const emailRepeated = authors.find(author => author.email === request.body.email)
         if (emailRepeated) {
             next(createHttpError(400, "This email already in use. Choose another one"))
         } else{
         const newUser = {...request.body, createdAt: new Date(), _id: uniqid(), avatar: `https://ui-avatars.com/api/?name=${request.body.name}+${request.body.surname}`}
-        authorsArray.push(newUser)
-        updateArray(authorsArray)
+        authors.push(newUser)
+        updateAuthors(authors)
         response.status(201).send(newUser)
         }
     } else {
@@ -38,7 +32,8 @@ try {
 
 authorsRouter.get("/", (request, response, next) => {
 try {
-    response.send(authorsArray)
+    const authors = getAuthors()
+    response.send(authors)
 }
 catch(error){
     next(error)
@@ -48,8 +43,9 @@ catch(error){
 
 authorsRouter.get("/:authorId", (request, response, next) => {
 try {
+    const authors = getAuthors()
     const authorId = request.params.authorId
-    const requestedAuthor = authorsArray.find(author => author._id === authorId)
+    const requestedAuthor = authors.find(author => author._id === authorId)
     if (requestedAuthor) {
         response.send(requestedAuthor)
     }
@@ -64,13 +60,14 @@ try {
 
 authorsRouter.put("/:authorId", (request, response, next) => { 
     try {
+        const authors = getAuthors()
         const authorId = request.params.authorId
-        const index = authorsArray.findIndex(author => author._id === authorId)
+        const index = authors.findIndex(author => author._id === authorId)
         if (index !== -1) {
-            const oldAuthor = authorsArray[index]
+            const oldAuthor = authors[index]
             const updatedAuthor = {...oldAuthor, ...request.body, updatedAt: new Date()}
-            authorsArray[index] = updatedAuthor
-            updateArray(authorsArray)
+            authors[index] = updatedAuthor
+            updateAuthors(authors)
             response.send(updatedAuthor)
         } else {
             next(createHttpError(404, "This is not the author you're looking for."))
@@ -82,8 +79,9 @@ authorsRouter.put("/:authorId", (request, response, next) => {
 
 authorsRouter.delete("/:authorId", (request, response, next) => {
     try {
-        const remainingAuthors = authorsArray.filter(author => author._id !== request.params.authorId)
-        updateArray(remainingAuthors)
+        const authors = getAuthors()
+        const remainingAuthors = authors.filter(author => author._id !== request.params.authorId)
+        updateAuthors(remainingAuthors)
         response.status(200).send({message: "Author deleted"})
     } catch (error) {
         next(error)

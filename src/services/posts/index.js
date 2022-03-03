@@ -34,10 +34,17 @@ postsRouter.post("/", newPostValidation, (request, response, next) => {
 postsRouter.get("/", (request, response, next) => {
     try {
         if (request.query && request.query.category){
-            const filteredPosts = postsArray.filter(post => post.category === request.query.category)
-            response.send(filteredPosts)
+            const filteredByCategory = postsArray.filter(post => post.category === request.query.category)
+            response.send(filteredByCategory)
+            // next(createHttpError(404, "No such category"))
+        } else if (request.query && request.query.title) {
+            const filteredByTitle = postsArray.filter(post => post.title.toLowerCase().includes(request.query.title.toLowerCase()))
+            response.send(filteredByTitle)
+            // next(createHttpError(404, "No such title"))
+        } else {
+            response.send(postsArray)
         }
-        else {response.send(postsArray)}
+        
     } catch(error) {
         next(error)
     }

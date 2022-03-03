@@ -4,6 +4,7 @@ import authorsRouter from "./services/authors/index.js"
 import postsRouter from "./services/posts/index.js"
 import cors from "cors"
 import { badRequestHandler, genericErrorHandler, notFoundHandler, unauthorizedHandler } from "./ErrorHandlers.js"
+import filesRouter from "./services/files/index.js"
 
 
 const server = express()
@@ -15,6 +16,7 @@ server.use(express.json ()) // we add this in lines before endpoint are added so
 // ***************** ENDPOINTS *****************
 server.use("/authors", authorsRouter)
 server.use("/blogPosts", postsRouter)
+server.use("/files", filesRouter)
 
 // ***************** ERRORHANDLERS **************
 

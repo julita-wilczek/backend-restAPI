@@ -88,4 +88,9 @@ authorsRouter.delete("/:authorId", async (request, response, next) => {
     }
 })
 
+// authorsRouter.patch("/:userId/avatar", multer().single("avatar"), (req,res) => {
+//   // 1. save file in public folder
+//   // 2. update specified user's record in db by adding a filed called avatar: "url"
+// })
+
 export default authorsRouter

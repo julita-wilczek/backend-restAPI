@@ -7,7 +7,7 @@ const getJSONPath = (filename) => join(join(dirname(fileURLToPath(import.meta.ur
 const postsJSONPath = getJSONPath("posts.json")
 const authorsJSONPath = getJSONPath("authors.json")
 const authorsPublicFolderPath = join(process.cwd(), "./public/img/authors") //cwd gives un the root folder, here "Back-end rest API"
-const postsPublicFolderPath = join(process.cwd(), "./public/img/posts")
+const postsPublicFolderPath = join(process.cwd(), "./public/img/blogPosts")
 
 export const getPosts = () => readJSON(postsJSONPath) // no need to parse, it's already included
 export const getAuthors = () => readJSON(authorsJSONPath) // no need to parse, it's already included

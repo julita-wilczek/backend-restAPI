@@ -1,4 +1,4 @@
-import express, { response } from "express" 
+import express from "express" 
 import uniqid from "uniqid" 
 import { validationResult } from "express-validator"
 import { newAuthorValidation } from "./validation.js"

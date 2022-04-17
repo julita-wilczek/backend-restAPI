@@ -114,7 +114,7 @@ postsRouter.post("/:postId/uploadCover", multer().single("cover"), async (req, r
     if (index !== -1) {
         await saveCovers(`${postId}${extension}`, req.file.buffer)
         const oldPost = posts[index]
-        const updatedPost = {...oldPost, cover: `http://localhost:3001/img/posts/${postId}${extension}`, updatedAt: new Date()}
+        const updatedPost = {...oldPost, cover: `http://localhost:3001/img/blogPosts/${postId}${extension}`, updatedAt: new Date()}
         posts[index] = updatedPost
         await updatePosts(posts)
         res.send({message: "Cover uploaded"})
@@ -166,5 +166,5 @@ postsRouter.get("/:postId/comments", async (req, res, next) => {
 export default postsRouter
 
 /*
-GET /blogPosts/:id/comments, get all the comments for a specific post
+
 */

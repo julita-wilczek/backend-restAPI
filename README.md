@@ -19,6 +19,6 @@ Express is configured to use the public folder to serve static files
 
 ### `npm ruv dev`
 
-Runs the server in the development mode.\
+Runs the server in the development mode.
 
  
